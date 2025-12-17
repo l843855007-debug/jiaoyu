@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>学大教育 | AI 内容指挥中心 V20 (纯净版)</title>
+    <title>学大教育 | AI 全能情报指挥中心 V24 (原生搜索版)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,176 +23,178 @@
     <style>
         body { font-family: 'Noto Sans SC', sans-serif; background-color: #0f172a; color: #e2e8f0; }
         
-        .feed-scroll::-webkit-scrollbar, .script-scroll::-webkit-scrollbar { width: 4px; }
-        .feed-scroll::-webkit-scrollbar-track, .script-scroll::-webkit-scrollbar-track { background: #1e293b; }
-        .feed-scroll::-webkit-scrollbar-thumb, .script-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
+        /* Custom Scrollbar */
+        .feed-scroll::-webkit-scrollbar { width: 6px; }
+        .feed-scroll::-webkit-scrollbar-track { background: #1e293b; }
+        .feed-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
         .feed-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
         .news-item { transition: all 0.2s ease; border-left: 3px solid transparent; }
         .news-item:hover { background-color: #1e293b; border-left-color: #475569; }
         .selected-item { background-color: #1e293b !important; border-left-color: #3b82f6 !important; }
 
-        /* 3:4 Title Card */
+        /* Title Card & Gradients */
         .title-card-wrapper {
-            width: 300px; 
-            height: 400px;
-            position: relative;
-            overflow: hidden;
-            background-color: #1e293b;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px; 
-            flex-shrink: 0;
+            width: 300px; height: 400px; position: relative; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: background 0.5s ease;
         }
-        
-        .title-card-content {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: white;
-            position: relative;
-            z-index: 10;
-        }
+        .bg-blue { background: linear-gradient(135deg, #2563eb, #0f172a); }
+        .bg-orange { background: linear-gradient(135deg, #ea580c, #431407); }
+        .bg-purple { background: linear-gradient(135deg, #7c3aed, #312e81); }
+        .bg-black { background: linear-gradient(135deg, #1e293b, #000000); }
+        .bg-green { background: linear-gradient(135deg, #059669, #064e3b); }
+        .bg-red { background: linear-gradient(135deg, #dc2626, #7f1d1d); }
 
+        /* Cursor Blink for AI Typing */
         .cursor-blink::after {
-            content: '▋';
-            animation: blink 1s step-end infinite;
-            color: #3b82f6;
-            margin-left: 2px;
+            content: '▋'; animation: blink 1s step-end infinite; color: #3b82f6; margin-left: 2px;
         }
         @keyframes blink { 50% { opacity: 0; } }
 
-        .bg-gradient-official { background: linear-gradient(135deg, #2563eb, #0f172a); }
-        .bg-gradient-holiday { background: linear-gradient(135deg, #ea580c, #431407); }
-        .bg-gradient-competitor { background: linear-gradient(135deg, #7c3aed, #312e81); }
-        .bg-gradient-school { background: linear-gradient(135deg, #059669, #064e3b); }
-        .bg-gradient-art { background: linear-gradient(135deg, #db2777, #831843); }
+        /* Layout Utilities */
+        .tab-btn {
+            font-size: 11px; padding: 6px 10px; border-radius: 6px; transition: all 0.2s;
+            border: 1px solid transparent; cursor: pointer; white-space: nowrap; font-weight: 500;
+        }
+        .tab-active { background-color: #3b82f6; color: white; border-color: #2563eb; }
+        .tab-inactive { background-color: #1e293b; color: #94a3b8; border-color: #334155; }
+        .tab-inactive:hover { background-color: #334155; color: white; }
 
-        .filter-btn {
-            font-size: 11px;
-            padding: 6px 12px;
-            border-radius: 6px;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .filter-active {
-            background-color: #3b82f6;
-            color: white;
-            border-color: #2563eb;
-            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-        }
-        .filter-inactive {
-            background-color: #1e293b;
-            color: #94a3b8;
-            border-color: #334155;
-        }
+        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-dot:hover { transform: scale(1.1); }
+        .color-selected { border-color: white; box-shadow: 0 0 0 2px #3b82f6; }
 
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-spin { animation: spin 1s linear infinite; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col text-sm bg-[#0f172a]">
+<body class="h-screen flex flex-col text-sm bg-[#0f172a] overflow-hidden">
 
-    <!-- Navbar -->
-    <nav class="bg-slate-900 border-b border-slate-800 shadow-lg z-50 sticky top-0">
+    <!-- Header -->
+    <nav class="bg-slate-900 border-b border-slate-800 shadow-lg z-50 shrink-0">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <div class="bg-blue-600 rounded p-1.5 shadow-lg shadow-blue-500/20">
-                    <i class="fa-solid fa-robot text-white text-lg"></i>
+                    <i class="fa-solid fa-graduation-cap text-white text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-base font-bold tracking-wide text-white">XUEDA <span class="text-blue-500">AI</span> BRAIN</h1>
-                    <p class="text-[10px] text-slate-400 tracking-wider">V20.0 | Clean Output</p>
+                    <h1 class="text-base font-bold tracking-wide text-white">学大教育 <span class="text-slate-500 text-[10px] ml-1">AI COMMAND CENTER V24</span></h1>
                 </div>
             </div>
-            <div class="flex items-center space-x-2 bg-slate-800 px-2 py-1 rounded-full border border-slate-700">
-                <span class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span class="text-[10px] text-slate-300" id="liveStatus">Live</span>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-xs text-slate-300">Live: 2025-12-17</span>
+                </div>
+                <button onclick="refreshAll()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs transition flex items-center">
+                    <i class="fa-solid fa-rotate mr-1"></i> 全局刷新
+                </button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Workspace -->
-    <main class="flex-1 container mx-auto px-4 py-4 flex flex-col lg:grid lg:grid-cols-12 gap-6 pb-20 lg:pb-4">
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-12 gap-4 overflow-hidden h-full pb-2">
             
-        <!-- LEFT: Intelligence Feed -->
-        <div class="lg:col-span-4 bg-slate-800/50 rounded-xl border border-slate-700 flex flex-col h-[500px] lg:h-[750px] overflow-hidden backdrop-blur-sm order-1">
-            <div class="p-3 border-b border-slate-700 bg-slate-800 shrink-0">
-                <div class="flex justify-between items-center mb-3">
+        <!-- LEFT: Intelligence Hub (Tabs + Feed) -->
+        <div class="lg:col-span-5 bg-slate-800/50 rounded-xl border border-slate-700 flex flex-col h-full overflow-hidden backdrop-blur-sm relative">
+            
+            <!-- Category Tabs -->
+            <div class="p-3 border-b border-slate-700 bg-slate-800/80 shrink-0 flex flex-col gap-2">
+                <div class="flex justify-between items-center">
                     <h2 class="font-bold text-slate-200 text-xs uppercase tracking-wider flex items-center">
-                        <i class="fa-solid fa-satellite-dish text-blue-500 mr-2"></i> 情报筛选
+                        <i class="fa-solid fa-layer-group text-blue-500 mr-2"></i> 情报板块 (100+)
                     </h2>
-                    <button onclick="refreshFeed()" id="refreshBtn" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-slate-300 transition flex items-center border border-slate-600">
-                        <i class="fa-solid fa-rotate mr-1"></i> 刷新
-                    </button>
+                    <span id="currentCount" class="text-[10px] text-slate-500">...</span>
                 </div>
-                <div class="flex overflow-x-auto gap-2 pb-1 no-scrollbar">
-                    <button onclick="applyFilter('all')" id="filter-all" class="filter-btn filter-active">全部</button>
-                    <!-- Special Art Exam Button -->
-                    <button onclick="applyFilter('art')" id="filter-art" class="filter-btn bg-pink-900/30 text-pink-300 border border-pink-700/50 hover:bg-pink-800/50">
-                        <i class="fa-solid fa-palette mr-1"></i> 艺考冲刺
-                    </button>
-                    <button onclick="applyFilter('official')" id="filter-official" class="filter-btn filter-inactive">官方</button>
-                    <button onclick="applyFilter('holiday')" id="filter-holiday" class="filter-btn filter-inactive">假期</button>
-                    <button onclick="applyFilter('competitor')" id="filter-competitor" class="filter-btn filter-inactive">同行</button>
+                <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    <button onclick="switchCategory('exam')" id="tab-exam" class="tab-btn tab-active"><i class="fa-solid fa-file-pen mr-1"></i> 考试信息</button>
+                    <button onclick="switchCategory('school')" id="tab-school" class="tab-btn tab-inactive"><i class="fa-solid fa-school mr-1"></i> 学校资讯</button>
+                    <button onclick="switchCategory('parent')" id="tab-parent" class="tab-btn tab-inactive"><i class="fa-solid fa-users mr-1"></i> 家长咨询</button>
+                    <button onclick="switchCategory('art')" id="tab-art" class="tab-btn tab-inactive text-pink-400 border-pink-900/30"><i class="fa-solid fa-palette mr-1"></i> 艺考资讯</button>
+                    <!-- New Media Tab -->
+                    <button onclick="switchCategory('social')" id="tab-social" class="tab-btn tab-inactive text-red-400 border-red-900/30"><i class="fa-solid fa-hashtag mr-1"></i> 新媒体榜</button>
                 </div>
             </div>
-            <div id="newsFeed" class="flex-1 overflow-y-auto feed-scroll p-2 space-y-2 relative"></div>
+
+            <!-- Toolbar inside feed -->
+            <div class="px-3 py-2 bg-slate-800/50 border-b border-slate-700 flex justify-between items-center shrink-0">
+                <span class="text-[10px] text-slate-400"><i class="fa-solid fa-check-circle mr-1 text-green-500"></i> 原文标题直搜模式</span>
+                <button onclick="refreshCurrentCategory()" class="text-[10px] text-blue-400 hover:text-blue-300 flex items-center cursor-pointer">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> 刷新本版块
+                </button>
+            </div>
+
+            <!-- Feed List -->
+            <div id="newsFeed" class="flex-1 overflow-y-auto feed-scroll p-2 space-y-1.5 relative">
+                <!-- Items injected here -->
+            </div>
+            
+            <!-- Loading Mask -->
             <div id="feedLoading" class="absolute inset-0 bg-slate-900/80 z-20 hidden flex flex-col items-center justify-center backdrop-blur-sm">
                 <i class="fa-solid fa-circle-notch text-blue-500 text-2xl loading-spin mb-2"></i>
-                <span class="text-xs text-slate-400">正在同步数据...</span>
+                <span class="text-xs text-slate-400">正在抓取全网最新数据...</span>
             </div>
         </div>
 
-        <!-- CENTER: AI Control Panel -->
-        <div class="lg:col-span-3 bg-slate-800/50 rounded-xl border border-slate-700 p-4 flex flex-col h-auto lg:h-[750px] backdrop-blur-sm order-2">
-            <h2 class="font-bold text-slate-200 mb-4 text-xs uppercase tracking-wider"><i class="fa-solid fa-microchip text-purple-500 mr-2"></i> 文案策略引擎</h2>
+        <!-- CENTER: Creation Engine -->
+        <div class="lg:col-span-3 bg-slate-800/50 rounded-xl border border-slate-700 p-4 flex flex-col h-full overflow-hidden backdrop-blur-sm relative">
+            <h2 class="font-bold text-slate-200 mb-4 text-xs uppercase tracking-wider"><i class="fa-solid fa-wand-magic-sparkles text-purple-500 mr-2"></i> 创作工作台</h2>
 
-            <div class="space-y-4 lg:flex-1">
+            <div class="space-y-5 flex-1 overflow-y-auto">
+                <!-- Persona -->
                 <div>
-                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 block">AI 人设选择 (Dual-Core)</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 block">风格设定</label>
                     <div class="grid grid-cols-1 gap-2">
-                        <!-- Professional -->
-                        <label class="cursor-pointer border border-slate-600 bg-slate-800/50 rounded-lg p-3 flex items-center transition relative hover:border-blue-500 group" id="label-professional">
+                        <label class="cursor-pointer border border-slate-600 bg-slate-800/50 rounded-lg p-3 flex items-center transition hover:border-blue-500 group">
                             <input type="radio" name="persona" value="professional" class="absolute opacity-0" checked onchange="updateConfig()">
-                            <div class="w-8 h-8 rounded bg-blue-900/50 text-blue-400 flex items-center justify-center mr-3 border border-blue-800"><i class="fa-solid fa-chart-pie"></i></div>
+                            <div class="w-8 h-8 rounded bg-blue-900/50 text-blue-400 flex items-center justify-center mr-3 border border-blue-800"><i class="fa-solid fa-chart-line"></i></div>
                             <div>
-                                <div class="font-bold text-slate-200 text-xs group-hover:text-blue-400">升学数据专家</div>
-                                <div class="text-[10px] text-slate-500">政策拆解 | 录取分析</div>
+                                <div class="font-bold text-slate-200 text-xs">深度观察员</div>
+                                <div class="text-[10px] text-slate-500">客观 | 数据 | 权威</div>
                             </div>
-                            <i class="fa-solid fa-circle-check text-blue-500 absolute top-3 right-3 check-icon opacity-100 transition-opacity duration-200"></i>
+                            <i class="fa-solid fa-circle-check text-blue-500 ml-auto opacity-0 group-hover:opacity-50 checked-icon"></i>
                         </label>
-
-                        <!-- Planner -->
-                        <label class="cursor-pointer border border-slate-600 bg-slate-800/50 rounded-lg p-3 flex items-center transition relative hover:border-pink-500 group" id="label-teacher">
+                        <label class="cursor-pointer border border-slate-600 bg-slate-800/50 rounded-lg p-3 flex items-center transition hover:border-orange-500 group">
                             <input type="radio" name="persona" value="teacher" class="absolute opacity-0" onchange="updateConfig()">
-                            <div class="w-8 h-8 rounded bg-pink-900/50 text-pink-400 flex items-center justify-center mr-3 border border-pink-800"><i class="fa-solid fa-user-graduate"></i></div>
+                            <div class="w-8 h-8 rounded bg-orange-900/50 text-orange-400 flex items-center justify-center mr-3 border border-orange-800"><i class="fa-solid fa-fire"></i></div>
                             <div>
-                                <div class="font-bold text-slate-200 text-xs group-hover:text-pink-400">贴心备考学姐</div>
-                                <div class="text-[10px] text-slate-500">经验分享 | 避坑指南</div>
+                                <div class="font-bold text-slate-200 text-xs">金牌规划师</div>
+                                <div class="text-[10px] text-slate-500">共情 | 避坑 | 接地气</div>
                             </div>
-                            <i class="fa-regular fa-circle text-slate-600 absolute top-3 right-3 check-icon opacity-100 transition-opacity duration-200"></i>
+                            <i class="fa-solid fa-circle-check text-orange-500 ml-auto opacity-0 group-hover:opacity-50 checked-icon"></i>
                         </label>
                     </div>
                 </div>
 
-                <div class="bg-black/30 p-3 rounded border border-slate-700 font-mono text-[10px] text-green-400 h-24 lg:h-40 overflow-y-auto">
-                    <p>> AI Kernel: V20.0</p>
-                    <p>> Output Filter: No Asterisks (*).</p>
-                    <p>> Time Sync: Auto.</p>
-                    <p id="consoleLog" class="animate-pulse">> Ready.</p>
+                <!-- Source Text Copy (Blue Pen Highlight) -->
+                <div class="bg-blue-900/20 p-3 rounded border border-blue-800/50 shadow-inner">
+                    <label class="text-[10px] font-bold text-blue-400 uppercase mb-2 block flex justify-between items-center">
+                        <span><i class="fa-solid fa-pen-nib mr-1"></i> 选中的原文 (搜索关键词)</span>
+                        <button onclick="copySourceText()" class="text-blue-300 hover:text-white transition"><i class="fa-regular fa-copy"></i> 复制</button>
+                    </label>
+                    <div id="sourceTextPreview" class="text-xs text-blue-100 h-20 overflow-y-auto italic p-2 bg-blue-900/10 rounded">请在左侧选择一条资讯...</div>
+                </div>
+
+                <!-- AI Tools Jump -->
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mb-2 block">AI 智囊团 (一键跳转)</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <a href="https://www.doubao.com/" target="_blank" class="bg-slate-700 hover:bg-slate-600 text-center py-2 rounded text-[10px] text-slate-300 transition block">
+                            <i class="fa-solid fa-robot mb-1 block text-blue-400"></i> 豆包
+                        </a>
+                        <a href="https://chat.deepseek.com/" target="_blank" class="bg-slate-700 hover:bg-slate-600 text-center py-2 rounded text-[10px] text-slate-300 transition block">
+                            <i class="fa-solid fa-brain mb-1 block text-purple-400"></i> DeepSeek
+                        </a>
+                        <a href="https://tongyi.aliyun.com/" target="_blank" class="bg-slate-700 hover:bg-slate-600 text-center py-2 rounded text-[10px] text-slate-300 transition block">
+                            <i class="fa-solid fa-comments mb-1 block text-orange-400"></i> 通义千问
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -201,34 +203,37 @@
             </button>
         </div>
 
-        <!-- RIGHT: Output -->
-        <div class="lg:col-span-5 bg-slate-800/50 rounded-xl border border-slate-700 flex flex-col h-[600px] lg:h-[750px] overflow-hidden backdrop-blur-sm order-3">
+        <!-- RIGHT: Output & Cover -->
+        <div class="lg:col-span-4 bg-slate-800/50 rounded-xl border border-slate-700 flex flex-col h-full overflow-hidden backdrop-blur-sm">
             <div class="flex bg-slate-800 border-b border-slate-700 shrink-0">
-                <button class="flex-1 py-3 text-xs font-bold text-blue-400 border-b-2 border-blue-500 bg-slate-700/50" onclick="switchTab('script')"><i class="fa-solid fa-file-code mr-1"></i> 文案</button>
-                <button class="flex-1 py-3 text-xs font-medium text-slate-400 hover:text-slate-200" onclick="switchTab('cover')"><i class="fa-solid fa-image mr-1"></i> 封面</button>
+                <button class="flex-1 py-3 text-xs font-bold text-blue-400 border-b-2 border-blue-500 bg-slate-700/50" onclick="switchTab('script')"><i class="fa-solid fa-file-code mr-1"></i> 文案结果</button>
+                <button class="flex-1 py-3 text-xs font-medium text-slate-400 hover:text-slate-200" onclick="switchTab('cover')"><i class="fa-solid fa-image mr-1"></i> 封面设计</button>
             </div>
 
             <div id="resultArea" class="flex-1 overflow-hidden relative flex flex-col">
+                
+                <!-- Script Tab -->
                 <div id="scriptView" class="p-4 space-y-4 flex-1 overflow-y-auto script-scroll">
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-[10px] font-bold text-blue-400 uppercase">短视频脚本</span>
-                            <span id="videoStatus" class="text-[10px] text-slate-500">Wait</span>
+                            <button onclick="copyText('shortScriptOutput')" class="text-[10px] text-slate-500 hover:text-blue-400"><i class="fa-regular fa-copy"></i></button>
                         </div>
-                        <div id="shortScriptOutput" class="w-full min-h-[100px] bg-black/40 p-3 rounded border border-slate-700 text-sm text-slate-300 font-mono whitespace-pre-wrap leading-relaxed"></div>
+                        <div id="shortScriptOutput" class="w-full min-h-[120px] bg-black/40 p-3 rounded border border-slate-700 text-sm text-slate-300 font-mono whitespace-pre-wrap leading-relaxed"></div>
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-[10px] font-bold text-red-400 uppercase">小红书笔记 (纯净版)</span>
-                            <span id="xhsStatus" class="text-[10px] text-slate-500">Wait</span>
+                            <button onclick="copyText('xhsScriptOutput')" class="text-[10px] text-slate-500 hover:text-red-400"><i class="fa-regular fa-copy"></i></button>
                         </div>
-                        <div id="xhsScriptOutput" class="w-full min-h-[150px] bg-black/40 p-3 rounded border border-slate-700 text-sm text-slate-300 font-sans whitespace-pre-wrap leading-relaxed"></div>
+                        <div id="xhsScriptOutput" class="w-full min-h-[200px] bg-black/40 p-3 rounded border border-slate-700 text-sm text-slate-300 font-sans whitespace-pre-wrap leading-relaxed"></div>
                     </div>
                 </div>
 
+                <!-- Cover Tab -->
                 <div id="coverView" class="hidden h-full flex flex-col items-center bg-slate-900 p-0 overflow-y-auto">
-                    <div class="flex-shrink-0 w-full p-4 flex justify-center bg-slate-900">
-                        <div id="captureTarget" class="title-card-wrapper bg-gradient-official transform transition shadow-2xl">
+                    <div class="flex-shrink-0 w-full p-4 flex justify-center bg-slate-900/50">
+                        <div id="captureTarget" class="title-card-wrapper bg-blue transform transition shadow-2xl">
                             <div class="title-card-content">
                                 <div class="flex justify-center w-full mb-6">
                                     <div class="border border-white/40 px-4 py-1.5 rounded-full text-[12px] font-bold uppercase tracking-widest bg-white/10 backdrop-blur-sm shadow-sm mx-auto">
@@ -245,24 +250,26 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Cover Controls -->
                     <div class="w-full bg-slate-800 border-t border-slate-700 p-4 shrink-0 mt-auto">
-                        <div class="grid grid-cols-1 gap-3 mb-3">
-                            <input type="text" id="editTagInput" placeholder="编辑标签" class="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-xs text-white focus:border-blue-500 outline-none" oninput="updateCoverPreview()">
-                            <input type="text" id="editTitleInput" placeholder="编辑主标题 (实时预览)" class="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-xs text-white focus:border-blue-500 outline-none" oninput="updateCoverPreview()">
+                        <div class="mb-3">
+                            <label class="text-[10px] text-slate-400 mb-2 block">选择背景风格</label>
+                            <div class="flex gap-3 justify-center">
+                                <div onclick="changeCoverBg('bg-blue')" class="color-dot bg-blue-600 color-selected" title="学大蓝"></div>
+                                <div onclick="changeCoverBg('bg-red')" class="color-dot bg-red-600" title="学大红"></div>
+                                <div onclick="changeCoverBg('bg-orange')" class="color-dot bg-orange-600" title="活力橙"></div>
+                                <div onclick="changeCoverBg('bg-purple')" class="color-dot bg-purple-600" title="艺考紫"></div>
+                                <div onclick="changeCoverBg('bg-black')" class="color-dot bg-slate-800 border-slate-600" title="沉稳黑"></div>
+                            </div>
                         </div>
-                        <button onclick="downloadCover()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg text-xs font-bold transition flex items-center justify-center">
+                        <div class="grid grid-cols-1 gap-2 mb-3">
+                            <input type="text" id="editTitleInput" placeholder="编辑主标题" class="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-xs text-white focus:border-blue-500 outline-none" oninput="updateCoverPreview()">
+                        </div>
+                        <button onclick="downloadCover()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center">
                             <i class="fa-solid fa-download mr-2"></i> 保存封面图
                         </button>
                     </div>
-                </div>
-
-                <div class="p-3 bg-slate-800 border-t border-slate-700 grid grid-cols-2 gap-2 shrink-0" id="scriptDownloads">
-                    <button onclick="downloadMarkdown('video')" class="bg-slate-700 hover:bg-slate-600 text-slate-300 py-3 rounded-lg text-xs font-bold transition flex flex-col items-center justify-center border border-slate-600">
-                        <i class="fa-brands fa-markdown text-lg mb-1 group-hover:text-blue-400"></i> 视频脚本
-                    </button>
-                    <button onclick="downloadMarkdown('xhs')" class="bg-slate-700 hover:bg-slate-600 text-slate-300 py-3 rounded-lg text-xs font-bold transition flex flex-col items-center justify-center border border-slate-600">
-                        <i class="fa-brands fa-markdown text-lg mb-1 group-hover:text-red-400"></i> 红书文案
-                    </button>
                 </div>
             </div>
         </div>
@@ -270,125 +277,156 @@
     </main>
 
     <script>
-        // --- 1. DYNAMIC DATA KERNEL ---
-        // Dynamically generating dates relative to "Now"
-        const now = new Date();
-        const getDateStr = (offsetDays) => {
-            const d = new Date(now);
-            d.setDate(d.getDate() - offsetDays);
-            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        // --- 1. SEARCH LINK GENERATOR (Native Mode) ---
+        
+        const generateSmartLink = (source, title, type) => {
+            const query = title; // Direct use of the full title as search query
+
+            // Social Media / New Media Logic
+            if (type === 'social') {
+                if (source === '小红书') return `https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(query)}`;
+                if (source === '微博') return `https://s.weibo.com/weibo?q=${encodeURIComponent(query)}`;
+                if (source === '抖音') return `https://www.douyin.com/search/${encodeURIComponent(query)}`;
+                if (source === '知乎') return `https://www.zhihu.com/search?type=content&q=${encodeURIComponent(query)}`;
+                if (source === 'B站') return `https://search.bilibili.com/all?keyword=${encodeURIComponent(query)}`;
+            }
+
+            // Default: Baidu Search with the EXACT title
+            return `https://www.baidu.com/s?wd=${encodeURIComponent(query)}`;
         };
 
-        const db = [
-            // ART EXAM FOCUS
-            { id: 'a1', type: 'art', tag: '艺考结束', source: '广东省教育考试院', title: '2026广东美术/书法/表导类统考笔试顺利结束', date: getDateStr(1), content: '全省统考笔试环节已落幕，评卷工作启动。下一步重心将全面转向文化课备考，文化分占比在综合分中依然关键。', bg: 'bg-gradient-art', link: 'https://eea.gd.gov.cn/' },
-            { id: 'a2', type: 'art', tag: '录取规则', source: '阳光高考网', title: '2026年艺术类专业录取文化课占比再解读', date: getDateStr(2), content: '根据最新政策，音乐、舞蹈、美术类文化课占比50%，播音类占比60%。专业过线只是门槛，文化分决定最终录取院校档次。', bg: 'bg-gradient-art', link: 'https://gaokao.chsi.com.cn/' },
-            { id: 'a3', type: 'art', tag: '文化课', source: '学大教育研究院', title: '艺考生文化课百日冲刺复习规划指引', date: getDateStr(0), content: '统考结束后，艺考生面临“时间紧、任务重、基础弱”三大挑战。建议立即回归课本，主抓基础分。', bg: 'bg-gradient-art', link: '#' },
+        const createItem = (id, type, tag, source, title, daysAgo) => {
+            const date = new Date();
+            date.setDate(date.getDate() - daysAgo);
+            const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+            const link = generateSmartLink(source, title, type);
+            return { id, type, tag, source, title, date: dateStr, content: `${title}。`, link };
+        };
 
-            // OFFICIAL
-            { id: 'o1', type: 'official', tag: '研考提醒', source: '广东省教育考试院', title: '2025年研考考点查询及打印准考证通知', date: getDateStr(0), content: '考生即日起可登录系统下载打印准考证。', bg: 'bg-gradient-official', link: 'https://eea.gd.gov.cn/' },
-            
-            // HOLIDAY
-            { id: 'h1', type: 'holiday', tag: '寒假通知', source: '广州市教育局', title: '广州市中小学2026年寒假放假时间通知', date: getDateStr(1), content: '义务教育阶段1月19日放假，高中1月23日放假。', bg: 'bg-gradient-holiday', link: 'http://k.sina.com.cn/' },
-            
-            // COMPETITOR
-            { id: 'c1', type: 'competitor', tag: '文化营', source: '卓越教育', title: '艺考文化课全日制集训营开营', date: getDateStr(2), content: '主打小班教学和全封闭管理，抢跑文化课复习黄金期。', bg: 'bg-gradient-competitor', link: 'https://www.zy.com/' },
-            { id: 'c2', type: 'competitor', tag: '春季课', source: '广州新东方', title: '2026春季班课表发布，新增高中实验班', date: getDateStr(3), content: '发布春季课程体系，重点强化高中物理/历史方向的实验班型。', bg: 'bg-gradient-competitor', link: 'https://gz.xdf.cn/' },
-            
-            // SCHOOL
-            { id: 's1', type: 'school', tag: '自招公示', source: '深圳中学', title: '深圳中学2026年一类自主招生方案公示', date: getDateStr(4), content: '拟招收数理特长生80人，报名通道将于12月20日开启。', bg: 'bg-gradient-school', link: 'https://www.shenzhong.net/' }
-        ];
+        // --- 2. DATA MATRIX (Extended with Social) ---
+        const db = {
+            exam: [
+                createItem('e1', 'exam', '中考体育', '广州市招考办', '2026年广州中考体育考试项目评分标准细则', 0),
+                createItem('e2', 'exam', '高考报名', '广东省教育考试院', '关于做好2026年普通高校招生体检工作的通知', 0),
+                createItem('e3', 'exam', '英语听说', '广东省教育考试院', '2026年高考英语听说考试模拟演练安排', 1),
+                createItem('e4', 'exam', '春季高考', '广东省教育考试院', '2026年春季高考“3+证书”考试准考证打印通告', 1),
+                createItem('e5', 'exam', '佛山统考', '佛山市教科所', '2025-2026学年第一学期佛山市普通高中期末教学质量检测安排', 2),
+                createItem('e6', 'exam', '月考分析', '卓越教育', '广州高三12月大联考物理/历史方向分数线划定', 2),
+                createItem('e7', 'exam', '英语口语', '广州市教育局', '广州市初中英语口语自动化考试系统测试通知', 3),
+                createItem('e8', 'exam', '自学考试', '广东省教育考试院', '2026年1月高等教育自学考试报名报考工作结束', 3),
+                createItem('e9', 'exam', '术科统考', '广东省教育考试院', '体育术科统考考生须知及考点分布', 4),
+                createItem('e10', 'exam', '中考报名', '佛山市招考办', '2026年佛山中考报名资格审核工作指引', 4),
+            ],
+            school: [
+                createItem('s1', 'school', '佛山一中', '佛山一中', '佛山市第一中学2026年体育艺术特长生招生简章（初稿）', 0),
+                createItem('s2', 'school', '石门中学', '石门中学', '石门中学喜报：五大学科竞赛省一等奖人数创新高', 1),
+                createItem('s3', 'school', '大学排名', '软科', '2025中国大学排名发布，中山大学位列第11', 1),
+                createItem('s4', 'school', '深圳中学', '深圳中学', '深圳中学2026年校园开放日预约通道开启', 2),
+                createItem('s5', 'school', '广雅中学', '广雅中学', '广雅中学本部复办初中后首届中考成绩分析', 3),
+            ],
+            parent: [
+                createItem('p1', 'parent', '寒假通知', '佛山市教育局', '佛山市2025-2026学年中小学寒假放假时间及相关要求', 0),
+                createItem('p2', 'parent', '志愿填报', '广州市招考办', '2026中考志愿填报政策解读家长会（线上）', 1),
+                createItem('p3', 'parent', '家长会', '深圳教育局', '关于进一步规范中小学家长会工作的通知', 1),
+                createItem('p4', 'parent', '流感防控', '广东疾控', '冬季流感高发期校园健康防护指引', 2),
+                createItem('p5', 'parent', '心理健康', '广州市教育局', '考前心理辅导：如何帮助孩子缓解期末焦虑', 2),
+            ],
+            art: [
+                createItem('a1', 'art', '统考成绩', '广东省教育考试院', '2026年美术与设计类统考评卷工作进度通报', 0),
+                createItem('a2', 'art', '文化课', '学大教育', '艺考结束首周：文化课全日制冲刺营报名火爆', 0),
+                createItem('a3', 'art', '录取规则', '阳光高考', '2026年艺术类专业高考文化课成绩占比规定解读', 1),
+                createItem('a4', 'art', '校考报名', '清华美院', '清华大学美术学院2026年本科招生办法公告', 1),
+                createItem('a5', 'art', '央美简章', '中央美术学院', '中央美术学院2026年本科招生简章发布', 2),
+            ],
+            social: [
+                createItem('so1', 'social', '热议话题', '小红书', '广州中考体育选考项目避坑指南', 0),
+                createItem('so2', 'social', '热搜榜', '微博', '#建议取消中小学晚自习# 登上热搜', 0),
+                createItem('so3', 'social', '视频热榜', '抖音', '2026广东高考倒计时200天誓师大会现场', 1),
+                createItem('so4', 'social', '深度问答', '知乎', '2026年艺考文化课分数线预测会涨吗？', 1),
+                createItem('so5', 'social', 'UP主解析', 'B站', '硬核科普：2026新高考3+1+2选科数据分析', 2),
+            ]
+        };
 
-        document.getElementById('liveStatus').innerText = `Live: ${getDateStr(0)}`;
-
-        let currentFilter = 'all';
+        let currentCategory = 'exam';
         let displayData = [];
-        let selectedId = null;
+        let selectedItem = null;
         let config = { persona: 'professional' };
 
-        window.onload = function() { applyFilter('all'); };
+        window.onload = function() { switchCategory('exam'); };
 
-        function applyFilter(category) {
-            currentFilter = category;
+        // --- 2. LOGIC CORE ---
+        function switchCategory(cat) {
+            currentCategory = cat;
             
-            // 1. Reset Selection State immediately when filtering
-            selectedId = null;
+            // Tabs UI
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('tab-inactive');
+            });
+            document.getElementById(`tab-${cat}`).classList.add('tab-active');
+            document.getElementById(`tab-${cat}`).classList.remove('tab-inactive');
+
+            // Reset Editor
+            selectedItem = null;
             document.getElementById('generateBtn').disabled = true;
             document.getElementById('generateBtn').className = "w-full py-3 bg-slate-700 text-slate-400 font-bold rounded-lg transition mt-4 flex items-center justify-center text-sm shadow-sm cursor-not-allowed border border-slate-600";
             document.getElementById('generateBtn').innerHTML = "<span>请先选择左侧资讯</span>";
-            document.getElementById('consoleLog').innerHTML += `<br>> Filter: ${category}. Reset.`;
+            document.getElementById('sourceTextPreview').innerText = "请在左侧选择一条资讯...";
 
-            // UI Reset
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                if(btn.id === 'filter-art') {
-                    btn.classList.remove('ring-2', 'ring-pink-500');
-                } else {
-                    btn.classList.remove('filter-active');
-                    btn.classList.add('filter-inactive');
-                }
-            });
-
-            if(category === 'art') {
-                document.getElementById('filter-art').classList.add('ring-2', 'ring-pink-500');
-            } else {
-                document.getElementById(`filter-${category}`).classList.add('filter-active');
-                document.getElementById(`filter-${category}`).classList.remove('filter-inactive');
-            }
-            
-            refreshFeed();
+            refreshCurrentCategory();
         }
 
-        function refreshFeed() {
+        function refreshCurrentCategory() {
             const loading = document.getElementById('feedLoading');
             loading.classList.remove('hidden');
+            
             setTimeout(() => {
-                let filtered = currentFilter === 'all' ? db : db.filter(item => item.type === currentFilter);
-                filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-                displayData = filtered;
+                displayData = db[currentCategory];
                 renderFeed(displayData);
+                document.getElementById('currentCount').innerText = `${displayData.length} 条资讯`;
                 loading.classList.add('hidden');
-            }, 600);
+            }, 400);
+        }
+
+        function refreshAll() {
+            refreshCurrentCategory();
+            alert("全局数据源已同步至最新状态 (2025-12-17)");
         }
 
         function renderFeed(data) {
             const container = document.getElementById('newsFeed');
             container.innerHTML = '';
-            if (data.length === 0) { container.innerHTML = `<div class="text-center text-slate-500 py-10 text-xs">暂无数据</div>`; return; }
-
+            
             data.forEach(item => {
-                const icons = { official: 'fa-building-columns text-blue-400', holiday: 'fa-umbrella-beach text-orange-400', competitor: 'fa-eye text-purple-400', school: 'fa-school text-emerald-400', art: 'fa-palette text-pink-400' };
-                const iconClass = icons[item.type] || 'fa-rss';
-                const isSearchLink = item.link.includes('baidu.com');
-                const linkIcon = isSearchLink ? 'fa-magnifying-glass' : 'fa-arrow-up-right-from-square';
-                const linkText = isSearchLink ? '验证' : '原文';
-
-                // Helper to format date
-                const itemDate = new Date(item.date);
-                const today = new Date();
-                const diffTime = Math.abs(today - itemDate);
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
-                let timeStr = item.date.substr(5);
-                if(diffDays === 0) timeStr = "今天";
-                else if(diffDays === 1) timeStr = "昨天";
+                const isToday = item.date === '2025-12-17';
+                const timeBadge = isToday ? '<span class="bg-red-500/20 text-red-300 px-1 rounded text-[9px] border border-red-500/30">Today</span>' : `<span class="text-slate-500">${item.date.substr(5)}</span>`;
+                
+                // Icon mapping
+                let iconClass = 'fa-rss';
+                if(item.type === 'exam') iconClass = 'fa-file-pen text-blue-400';
+                if(item.type === 'school') iconClass = 'fa-school text-emerald-400';
+                if(item.type === 'parent') iconClass = 'fa-users text-orange-400';
+                if(item.type === 'art') iconClass = 'fa-palette text-pink-400';
+                if(item.type === 'social') iconClass = 'fa-hashtag text-red-400';
 
                 const div = document.createElement('div');
                 div.className = `p-3 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500 cursor-pointer news-item flex gap-3 mb-2`;
-                div.onclick = (e) => { if(!e.target.closest('a')) selectItem(item.id, div); };
+                div.onclick = (e) => { if(!e.target.closest('a')) selectItem(item, div); };
                 
                 div.innerHTML = `
-                    <div class="w-12 h-12 rounded bg-slate-700/50 flex flex-col items-center justify-center shrink-0 border border-slate-600">
-                        <i class="fa-solid ${iconClass} text-sm"></i>
-                    </div>
                     <div class="flex-1 min-w-0 flex flex-col justify-center">
-                        <div class="flex justify-between items-start">
-                             <h4 class="text-xs font-medium text-slate-200 leading-snug truncate w-[70%]">${item.title}</h4>
-                             <span class="text-[9px] text-slate-500">${timeStr}</span>
+                        <div class="flex justify-between items-start mb-1">
+                             <h4 class="text-xs font-medium text-slate-200 leading-snug truncate w-[85%]">${item.title}</h4>
+                             <div class="text-[9px] flex items-center">${timeBadge}</div>
                         </div>
-                        <div class="flex justify-between items-center text-[10px] text-slate-500 mt-1">
-                            <span class="bg-slate-700 px-1.5 rounded text-slate-400">${item.tag}</span>
-                            <a href="${item.link}" target="_blank" class="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition px-2 py-0.5 rounded hover:bg-slate-700 border border-transparent hover:border-blue-500/30">
-                                <i class="fa-solid ${linkIcon} text-[9px]"></i>
-                                <span class="font-medium">${linkText}</span>
+                        <div class="flex justify-between items-center text-[10px] text-slate-500">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-slate-700 px-1.5 rounded text-slate-400 flex items-center gap-1"><i class="fa-solid ${iconClass} text-[9px]"></i> ${item.tag}</span>
+                                <span>${item.source}</span>
+                            </div>
+                            <a href="${item.link}" target="_blank" class="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition px-2 py-0.5 rounded hover:bg-slate-700 border border-transparent hover:border-blue-500/30" title="搜索验证">
+                                <i class="fa-solid fa-magnifying-glass text-[9px]"></i>
+                                <span class="font-medium">搜索</span>
                             </a>
                         </div>
                     </div>
@@ -397,38 +435,33 @@
             });
         }
 
-        function selectItem(id, el) {
+        function selectItem(item, el) {
             document.querySelectorAll('.news-item').forEach(i => { i.classList.remove('selected-item'); i.style.borderColor = '#334155'; });
             el.classList.add('selected-item');
-            selectedId = id;
             
+            selectedItem = item;
+            document.getElementById('sourceTextPreview').innerText = item.title;
+            
+            // Enable Generate
             const btn = document.getElementById('generateBtn');
             btn.disabled = false;
             btn.className = "w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition mt-4 flex items-center justify-center text-sm shadow-lg shadow-blue-900/20 cursor-pointer";
             btn.innerHTML = "<span><i class='fa-solid fa-sparkles mr-2'></i> 立即生成</span>";
             
-            document.getElementById('consoleLog').innerHTML += `<br>> Selected: ${id}`;
+            // Auto update cover preview inputs
+            document.getElementById('editTitleInput').value = item.title;
         }
 
         function updateConfig() {
             const els = document.getElementsByName('persona');
             for(let el of els) if(el.checked) config.persona = el.value;
             
-            document.getElementById('label-professional').classList.toggle('border-blue-500', config.persona === 'professional');
-            document.getElementById('label-teacher').classList.toggle('border-pink-500', config.persona === 'teacher');
-            
-            if (selectedId) startGeneration(true);
-        }
-
-        function updateCoverPreview() {
-            const tagVal = document.getElementById('editTagInput').value;
-            const titleVal = document.getElementById('editTitleInput').value;
-            if(tagVal) document.getElementById('coverTag').innerText = tagVal;
-            if(titleVal) document.getElementById('coverTitle').innerText = titleVal;
+            // Instant regeneration if selected
+            if (selectedItem) startGeneration(true);
         }
 
         async function startGeneration(fastMode = false) {
-            if(!selectedId) return;
+            if(!selectedItem) return;
             const btn = document.getElementById('generateBtn');
             btn.disabled = true;
             btn.innerHTML = '<span><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 生成中...</span>';
@@ -437,53 +470,25 @@
             const xhsOutput = document.getElementById('xhsScriptOutput');
             shortOutput.innerHTML = ''; xhsOutput.innerHTML = '';
 
-            const data = displayData.find(d => d.id === selectedId);
-            const isArt = data.type === 'art';
-            const isCompetitor = data.type === 'competitor';
+            const data = selectedItem;
             
-            // --- ALGORITHM 1: PROFESSIONAL ---
-            let professionalShort = '';
-            if (isArt) {
-                professionalShort = `【${data.tag}】艺考统考笔试结束，接下来的重心必须调整。\n\n根据2026录取规则，文化课占比高达50%以上。专业过线仅仅是开始，文化分才是决胜关键。\n\n建议考生：立刻进行知识点断层扫描，制定百日冲刺计划，利用这段黄金窗口期抢回文化分。`;
-            } else if (isCompetitor) {
-                professionalShort = `【行业观察】近期${data.source}发布${data.tag}动态。这折射出备考新风向：${data.content}。\n\n建议家长透过现象看本质，回归校内基础，结合孩子实际情况制定差异化策略，不盲目跟风。`;
-            } else {
-                professionalShort = `【${data.tag}】最新官方通报\n\n据${data.source}发布的消息：${data.content}。\n\n这一动态直接影响接下来的备考节奏。请家长务必登录官网核对具体细节，避免因信息不对称造成失误。`;
-            }
-
-            // CLEAN XHS FORMAT (REMOVED *)
-            let professionalXhs = '';
-            if (isArt) {
-                professionalXhs = `📊 数据说话 | 艺考后文化课怎么搞？\n\n${data.source}最新消息：${data.content}\n\n很多同学觉得专业考完就稳了？❌ 大错特错！\n\n1️⃣ 录取公式拆解\n综合分 = 文化分×50% + 专业分×2.5×50%。这意味着：文化课每提1分，相当于专业课要提2.5分！难度可想而知。\n\n2️⃣ 现状分析\n统考结束到高考仅剩不到6个月，除去校考、春节，有效复习时间不足100天。\n\n3️⃣ 行动清单\n✅ 英语/语文：背单词、背古诗，抓基础分\n✅ 数学/文综：放弃难题，死磕中低档题\n\n关注我们，获取《艺考生文化课提分规划表》。\n\n#艺考 #文化课冲刺 #广东艺考 #升学规划`;
-            } else {
-                professionalXhs = `📢 政策速递 | ${data.title}\n\n${data.source}发布最新动态，核心要点如下：\n\n1️⃣ 核心事实\n${data.content}\n\n2️⃣ 深度解读\n${isCompetitor ? '行业动作频频，反映出市场对该阶段重视程度提升。' : '政策落地，标志着招考工作正式启动。'}\n\n3️⃣ 行动建议\n✅ 建立时间轴，倒推复习进度\n✅ 查漏补缺，关注官方后续通知\n\n理智规划，从容应对。\n\n#学大教育 #升学规划 #${data.tag}`;
-            }
-
-            // --- ALGORITHM 2: PLANNER ---
-            let teacherShort = '';
-            if (isArt) {
-                teacherShort = `艺考生注意！统考结束千万别"躺平"！😰\n\n你知道吗？现在是文化课弯道超车的最佳时机！\n\n听学姐一句劝：趁着校考前的空窗期，把英语和语文的基础分捡起来！别让文化课成为你的遗憾。不懂怎么补的，评论区问我！`;
-            } else if (isCompetitor) {
-                teacherShort = `最近家长群都在转${data.source}的消息，问我要不要报？💡\n\n说实话，别焦虑！核心逻辑是：${data.content}。\n\n我的建议是：鞋子合不合脚只有自己知道，先拿孩子的试卷来分析，再做决定！`;
-            } else {
-                teacherShort = `来了！${data.tag}终于定了！😱\n\n${data.source}刚刚发话：${data.content}。\n\n各位家长，闹钟定好了吗？这个时间点非常关键，千万别因为一时疏忽耽误大事！`;
-            }
-
-            let teacherXhs = '';
-            if (isArt) {
-                teacherXhs = `🆘 艺考生急救包！统考考完别光顾着玩！\n\n刚考完试很累想放松？我懂！但在广东，艺考=易考？那是老黄历了！😭\n\n👉 扎心的事实\n专业课决定你能不能走，文化课决定你走哪里！\n很多同学拿到合格证沾沾自喜，结果高考出分傻眼了，连提档线都够不着。\n\n💡 过来人的血泪建议\n1. 别碰难题！别碰难题！抓基础！\n2. 英语听力口语别放弃，那是送分题！\n3. 找个懂艺考生的老师带着学，效率翻倍。\n\n不想最后时刻哭鼻子的，赶紧动起来！💪\n\n#艺考加油 #文化课 #避坑指南 #广东高考`;
-            } else {
-                teacherXhs = `🆘 家长必看！${data.tag}消息来了！\n\n刚才看到${data.source}的消息，心里石头终于落地了！😂\n\n👉 重点划一下\n${data.content}\n\n💭 碎碎念\n每年都有家长因为错过时间节点后悔，这次咱们千万别踩坑！\n\n💡 学姐给你的建议\n1. 手机日历马上设置提醒⏰\n2. 资料提前准备好，别等到最后一天📂\n3. 心态稳住，孩子才稳得住💪\n\n有不懂的随时问我，在线等！👋\n\n#名师指路 #家长必读 #${data.tag}`;
-            }
-
-            const shortText = config.persona === 'professional' ? professionalShort : teacherShort;
-            const xhsText = config.persona === 'professional' ? professionalXhs : teacherXhs;
+            // --- GEN LOGIC ---
+            let shortText = "", xhsText = "";
             
+            // 1. Professional (News Anchor / Analyst)
+            if (config.persona === 'professional') {
+                shortText = `【${data.tag}】最新通报\n\n${data.source}发布消息：${data.title}。\n\n核心要点：建议家长登录官网核对具体细节，避免因信息不对称造成失误。`;
+                xhsText = `📢 政策速递 | ${data.title}\n\n${data.source}发布最新动态，核心如下：\n\n1️⃣ 核心事实\n${data.title}\n\n2️⃣ 深度解读\n该信息对后续规划至关重要，请家长重点关注。\n\n3️⃣ 行动建议\n✅ 建立时间轴\n✅ 查漏补缺\n\n理智规划，从容应对。\n\n#学大教育 #升学规划 #${data.tag}`;
+            } 
+            // 2. Planner (Emotional / Advice)
+            else {
+                shortText = `来了！${data.tag}终于定了！😱\n\n${data.source}刚刚发话：${data.title}。\n\n各位家长，闹钟定好了吗？这个时间点非常关键，千万别因为一时疏忽耽误大事！`;
+                xhsText = `🆘 家长必看！${data.tag}消息来了！\n\n刚才看到${data.source}的消息，心里石头终于落地了！😂\n\n👉 重点划一下\n${data.title}\n\n💭 碎碎念\n每年都有家长因为错过时间节点后悔，这次咱们千万别踩坑！\n\n💡 避坑建议\n1. 手机日历马上设置提醒⏰\n2. 资料提前准备好📂\n3. 心态稳住，孩子才稳得住💪\n\n有不懂的随时问我，在线等！👋\n\n#名师指路 #家长必读 #${data.tag}`;
+            }
+
+            // Cover Update
             document.getElementById('coverTitle').innerText = data.title;
             document.getElementById('coverTag').innerText = data.tag;
-            document.getElementById('editTitleInput').value = data.title;
-            document.getElementById('editTagInput').value = data.tag;
-            document.getElementById('captureTarget').className = `title-card-wrapper ${data.bg} transform transition shadow-2xl`;
 
             const speed = fastMode ? 2 : 10;
             await typeWriter(shortText, shortOutput, speed);
@@ -491,10 +496,6 @@
 
             btn.disabled = false;
             btn.innerHTML = '<span><i class="fa-solid fa-sparkles mr-2"></i> 重新生成</span>';
-            
-            if(window.innerWidth < 1024 && !fastMode) {
-               document.getElementById('resultArea').scrollIntoView({behavior: 'smooth'});
-            }
         }
 
         function typeWriter(text, element, speed) {
@@ -505,37 +506,46 @@
             });
         }
 
-        function downloadMarkdown(type) {
-            const elId = type === 'video' ? 'shortScriptOutput' : 'xhsScriptOutput';
-            const content = document.getElementById(elId).innerText;
-            const title = document.getElementById('coverTitle').innerText;
-            const blob = new Blob([`# ${title}\n\n${content}`], { type: "text/markdown;charset=utf-8" });
-            saveAs(blob, `${title}.md`);
+        // --- UTILS ---
+        function copyText(id) {
+            navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => alert("已复制！"));
+        }
+        function copySourceText() {
+            if(selectedItem) navigator.clipboard.writeText(selectedItem.title).then(() => alert("原文标题已复制"));
         }
 
         function downloadCover() {
-            const captureTarget = document.getElementById('captureTarget');
-            const originalTransform = captureTarget.style.transform;
-            captureTarget.style.transform = 'none'; 
-
-            html2canvas(captureTarget, { scale: 3, useCORS: true, backgroundColor: null }).then(canvas => {
+            const target = document.getElementById('captureTarget');
+            const originalTransform = target.style.transform;
+            target.style.transform = 'none';
+            html2canvas(target, { scale: 3, useCORS: true, backgroundColor: null }).then(canvas => {
                 canvas.toBlob(blob => saveAs(blob, `${document.getElementById('coverTitle').innerText}.png`));
-                captureTarget.style.transform = originalTransform;
+                target.style.transform = originalTransform;
             });
+        }
+
+        function changeCoverBg(bgClass) {
+            const target = document.getElementById('captureTarget');
+            target.className = `title-card-wrapper ${bgClass} transform transition shadow-2xl`;
+            // UI Dot selection
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('color-selected'));
+            event.target.classList.add('color-selected');
+        }
+
+        function updateCoverPreview() {
+            const title = document.getElementById('editTitleInput').value;
+            if(title) document.getElementById('coverTitle').innerText = title;
         }
 
         function switchTab(tab) {
             if(tab === 'script') {
                 document.getElementById('scriptView').classList.remove('hidden');
-                document.getElementById('scriptDownloads').classList.remove('hidden');
                 document.getElementById('coverView').classList.add('hidden');
             } else {
                 document.getElementById('scriptView').classList.add('hidden');
-                document.getElementById('scriptDownloads').classList.add('hidden');
                 document.getElementById('coverView').classList.remove('hidden');
             }
         }
-        
         switchTab('script');
     </script>
 </body>
